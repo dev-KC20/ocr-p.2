@@ -10,12 +10,12 @@ import warnings
 
 print(sys.version_info[1])
 if sys.version_info[0] < 3:
-    warnings.warn("Must be using Python 3")
+    warnings.warn("Should be using Python 3")
 if sys.version_info[1] < 10:
-    warnings.warn("Match inst. of Release 10 of Python 3")
+    warnings.warn("doesn't match instructions of release 10 of Python 3")
 
-# délai d'attente en 1sec
-be_nice = 1
+# Conseil Mentor :CM: baisser le délai d'attente car le site est dédié aux étudiants
+BE_NICE = 0
 
 
 
@@ -30,6 +30,8 @@ def convert_line_table(table_soup_tag):
     liste_key_value = []
     if type(table_soup_tag) is None:
         return ['wrong input type']
+        # Best Practise :BP: éviter les boucles for imbriquées 
+        # par exemple en cherchant directement au niveau "td"/"th"
     for tp in table_soup_tag.findAll("tr"): 
     	nouvelle_line = [] 
     	for cell in tp.findAll(["td", "th"]): 
@@ -39,10 +41,13 @@ def convert_line_table(table_soup_tag):
 
 
 def write_csv_file(liste_to_write, file_name, sep, write_header):
-    """ recoit une liste_to_write, liste de liste, dont le contenu doit être écrit dans un fichier csv nommé file_name dont le séparateur est sep
-            et selon write_header ajout d'un entête de column
+    """ recoit une liste_to_write et en écrit le contenu dans un fichier csv file_name 
+
+            liste_to_write est une liste de liste
+            sep précise le séparateur du fichier csv
+            write_header permet l'écriture d'une ligne d'entête de colonne
     """
-    # join values with commas once more, removing newline characters
+    # :BP: utiliser le module csv qui gére nativement les séparateurs
     if sep is None:
         sep = ";"
            
@@ -50,6 +55,8 @@ def write_csv_file(liste_to_write, file_name, sep, write_header):
     data_to_write = (sep.join(data_line)) 
 #    print(f'data to write  {data_to_write}')
     # écrire dans le fichier en ajoutant 'append'
+    # si le fichier existe déja l'ouvrir avec a sinon avec w
+    # :CM: inclure dans un try/execpt pour gérer les cas d'erreur fichier
     with open(file_name, "a", encoding='utf-8') as file:
     # création de l'entête
         if write_header:
@@ -63,7 +70,12 @@ def write_csv_file(liste_to_write, file_name, sep, write_header):
 
 
 def scrap_url(url_to_scrap):
-    # liste des champs à récupérer : id, col, valeur
+    """ recoit une url du site books.toscrap et retourne une liste des données trouvées pour le livre 
+    
+    liste des champs récupérés : id, col, valeur
+    
+    """
+    # :BP: liste versus dict : ici seules les clés sont immuables, pas les valeurs -> un dict serait une option plus performante
     list_of_info=[
             ['url',"product_page_url",''],
             ['UPC',"universal_product_code [upc]",''],
@@ -79,14 +91,16 @@ def scrap_url(url_to_scrap):
 # accéder et charger la page
     response = requests.get(url_to_scrap)
     # délai pour ne pas surcharger le site
-    time.sleep(be_nice)
+    time.sleep(BE_NICE)
     # traiter si le site a bien retourner la page
     if response.ok:
     
         soup = bs(response.text,features="html.parser")
+
+
         title = soup.find(class_="col-sm-6 product_main").h1
-        
         product_description = soup.find(id="content_inner").find_next('h2').find_next('p')
+        # :CM: evt. transformer valeur alpha "Five" en numérique "5"
         star_rating = soup.find(class_="col-sm-6 product_main").find_next('p').find_next('p').find_next('p').attrs
         category_crumb = soup.find(class_="breadcrumb").find_all('li')
         category_book = []
@@ -97,10 +111,14 @@ def scrap_url(url_to_scrap):
         table_prod =  soup.find(class_="table table-striped")
     
         tableau_page = convert_line_table(table_prod)
+        # liste de liste déclarée vide, = [] liste simple?
         table_info = [[]]
     
+        # :CM: evt. nettoyer les valeurs de Price, Availabilty pour n'avoir que leurs valeurs numériques 
         for info in tableau_page:
+            # :CM: faut-il récupérer des valeurs inutilisées, chaque site scrapé diffère -> si on sait ici que c'est la 4eme valeur -> prendre l'indice 3
             if info[0] in ['UPC', 'Price (excl. tax)', 'Price (incl. tax)', 'Availability']:
+                
                 table_info.append([info[0],info[1]])
         img_file = soup.find(class_="item active").find('img')
         site_parts = url_to_scrap.split('/')
@@ -160,13 +178,15 @@ def scrap_url(url_to_scrap):
     return list_of_info
 
 
-# page en cours de scrap
+# pages en cours de scrap
 
 start = time.time()
 url= 'https://books.toscrape.com/catalogue/the-requiem-red_995/index.html'
        
 write_csv_file(scrap_url(url), "books.csv", ";", True)
 url= 'https://books.toscrape.com/catalogue/rip-it-up-and-start-again_986/index.html'
+write_csv_file(scrap_url(url), "books.csv", ";", False)
+url= 'https://books.toscrape.com/catalogue/sapiens-a-brief-history-of-humankind_996/index.html'
 write_csv_file(scrap_url(url), "books.csv", ";", False)
 end = time.time()
 print(f'Le temps d"execution a été de {end-start} sec.')
