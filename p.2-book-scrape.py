@@ -55,7 +55,7 @@ def write_csv_file(dict_to_write, file_name, sep, write_header):
             col_header = [li for li in dict_to_write.keys()]
             file.write(sep.join(col_header)) 
             file.write('\n') 
-        file.write(sep.join(data_line)) 
+        file.write(sep.join(data_line).strip())
         file.write('\n') 
     return
 
@@ -73,10 +73,10 @@ def scrap_url(url_to_scrap):
             "title":'',
             "price_including_tax":'',
             "price_excluding_tax":'',
-            "number_available":0,
+            "number_available":'',
             "product_description":'',
             "category":'',
-            "review_rating":0,
+            "review_rating":'',
             "image_url":''
     }
     # conversion alpha anglais en entier alpha
@@ -89,12 +89,13 @@ def scrap_url(url_to_scrap):
         }
 # accéder et charger la page
     response = requests.get(url_to_scrap)
+    
     # délai pour ne pas surcharger le site
     time.sleep(BE_NICE)
     # traiter si le site a bien retourner la page
     if response.ok:
-    
-        soup = bs(response.text,features="html.parser")
+        # response.encoding = 'ISO-8859-1'
+        soup = bs(response.content,features="html.parser")
 
         dict_of_info['product_page_url'] = url
 
@@ -102,11 +103,9 @@ def scrap_url(url_to_scrap):
         dict_of_info['title'] = title.text
 
         product_description = soup.find(id="content_inner").find_next('h2').find_next('p')
-        dict_of_info['product_description'] = product_description.text.encode('latin1').decode('utf-8')
-
+        dict_of_info['product_description'] = product_description.text 
         # :CM: evt. transformer valeur alpha "Five" en numérique "5"
         star_rating = soup.find(class_="col-sm-6 product_main").find_next('p').find_next('p').find_next('p').attrs
-        # print(f' star rating: {list(star_rating.values())[0][1]}')
         dict_of_info['review_rating'] = dict_of_rating[list(star_rating.values())[0][1]]
         
         category_crumb = soup.find(class_="breadcrumb").find_all('li')
