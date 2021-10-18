@@ -102,7 +102,7 @@ def scrap_url(url_to_scrap):
         dict_of_info['title'] = title.text
 
         product_description = soup.find(id="content_inner").find_next('h2').find_next('p')
-        dict_of_info['product_description'] = product_description.text
+        dict_of_info['product_description'] = product_description.text.encode('latin1').decode('utf-8')
 
         # :CM: evt. transformer valeur alpha "Five" en numérique "5"
         star_rating = soup.find(class_="col-sm-6 product_main").find_next('p').find_next('p').find_next('p').attrs
