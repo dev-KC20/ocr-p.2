@@ -46,7 +46,6 @@ def write_csv_file(dict_to_write, file_name, sep, write_header):
         sep = ";"
            
     data_line = [li for li in dict_to_write.values()]
-    print(f'data line  {data_line}')
     # écrire dans le fichier en ajoutant 'append'
     # si le fichier existe déja l'ouvrir avec a sinon avec w
     # :CM: inclure dans un try/execpt pour gérer les cas d'erreur fichier
@@ -133,7 +132,6 @@ def scrap_url(url_to_scrap):
         img_sub_url = "/".join(img_parts[2:])
         img_url = "https://" + site_parts[2:3][0] + "/" +(img_sub_url)
 
-        print(dict_of_info)
     return dict_of_info
 
 
