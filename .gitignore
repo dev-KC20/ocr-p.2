@@ -6,6 +6,9 @@
 *.cfg
 *.data
 
+# local settings
+.vscode/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

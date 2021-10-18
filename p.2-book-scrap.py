@@ -6,13 +6,9 @@ import requests
 from bs4 import BeautifulSoup as bs
 import time
 import sys
-import warnings
 import re
 
-if sys.version_info[0] < 3:
-    warnings.warn("Should be using Python 3")
-if sys.version_info[1] < 10:
-    warnings.warn("doesn't match instructions of release 10 of Python 3")
+
 
 # Conseil Mentor :CM: baisser le délai d'attente car le site est dédié aux étudiants
 BE_NICE = 0
@@ -138,54 +134,6 @@ def scrap_url(url_to_scrap):
         img_url = "https://" + site_parts[2:3][0] + "/" +(img_sub_url)
 
         print(dict_of_info)
-        # for line in dict_of_info:
-        #     print(line)
-    # pour tester la nouvelle version 3.10 de python (à vérifier lors de l'execution si update python fait en local!)
-            # if sys.version_info[1] >= 10:
-            #     match line[0]:
-            #         case 'url':
-            #             line[2] = url_to_scrap
-            #         case 'UPC':
-            #             line[2] = table_info[1][1]
-            #         case 'title':
-            #             line[2] = title.text
-            #         case 'Price (incl. tax)':
-            #             line[2] = table_info[2][1]
-            #         case 'Price (excl. tax)':
-            #             line[2] = table_info[3][1]
-            #         case 'Availability In stock':
-            #             line[2] = table_info[4][1]
-            #         case 'product_description':
-            #             line[2] = product_description.text
-            #         case 'category':
-            #             line[2] = category
-            #         case 'review_rating':
-            #             line[2] = list(star_rating.values())[0][1]
-            #         case 'image_url':
-            #             line[2] = img_url
-            # else:
-            #     if line[0] == 'url':
-            #         line[2] = url_to_scrap
-            #     elif line[0] == 'UPC':
-            #         line[2] = table_info[1][1]
-            #     elif line[0] == 'title':
-            #         line[2] = title.text
-            #     elif line[0] == 'Price (incl. tax)':
-            #         line[2] = table_info[2][1]
-            #     elif line[0] == 'Price (excl. tax)':
-            #         line[2] = table_info[3][1]
-            #     elif line[0] == 'Availability In stock':
-            #         line[2] = table_info[4][1]
-            #     elif line[0] == 'product_description':
-            #         line[2] = product_description.text
-            #     elif line[0] == 'category':
-            #         line[2] = category
-            #     elif line[0] == 'review_rating':
-            #         line[2] = list(star_rating.values())[0][1]
-            #     elif line[0] == 'image_url':
-            #         line[2] = img_url
-
-
     return dict_of_info
 
 
