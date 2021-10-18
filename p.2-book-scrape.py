@@ -34,21 +34,15 @@ def convert_line_table(table_soup_tag):
     return dict_info_livre
 
 
-def write_csv_file(dict_to_write, file_name, sep, write_header):
+def write_csv_file(dict_to_write, file_name, write_header):
     """ recoit un dict_to_write et en écrit le contenu dans un fichier csv file_name 
 
             dict_to_write est un dict colonne:valeur
             sep précise le séparateur du fichier csv
             write_header permet l'écriture d'une ligne d'entête de colonne
     """
-    # :BP: utiliser le module csv qui gére nativement les séparateurs
-    if sep is None:
-        sep = ";"
            
     data_line = [li for li in dict_to_write.values()]
-    # écrire dans le fichier en ajoutant 'append'
-    # si le fichier existe déja l'ouvrir avec a sinon avec w
-    # :CM: inclure dans un try/execpt pour gérer les cas d'erreur fichier
 
     try:
         with open(file_name, "a", newline='', encoding='utf-8') as file:
@@ -69,7 +63,6 @@ def scrap_url(url_to_scrap):
     liste des champs récupérés : col, valeur
     
     """
-    # :BP: liste versus dict : ici seules les clés sont immuables, pas les valeurs -> un dict serait une option plus performante
     dict_of_info = {
             "product_page_url":'',
             "universal_product_code [upc]":'',
@@ -95,7 +88,7 @@ def scrap_url(url_to_scrap):
     
     # délai pour ne pas surcharger le site
     time.sleep(BE_NICE)
-    # traiter si le site a bien retourner la page
+    # traiter si le site a bien retourné la page
     if response.ok:
         # response.encoding = 'ISO-8859-1'
         soup = bs(response.content,features="html.parser")
@@ -123,7 +116,6 @@ def scrap_url(url_to_scrap):
 
         dict_tableau = convert_line_table(table_prod)
         dict_of_info['universal_product_code [upc]'] = dict_tableau['UPC']
-        # :CM: evt. nettoyer les valeurs de Price, Availabilty pour n'avoir que leurs valeurs numériques 
         # on admet que la devise n'est pas utile dans un champ numérique car aucun champ pour la stocker sauf à choisir type alphanumérique
         dict_of_info['price_excluding_tax'] = re.sub("[a-zA-Z£()\s]+", "",dict_tableau['Price (excl. tax)'][1:])
         dict_of_info['price_including_tax'] = re.sub("[a-zA-Z£()\s]+", "", dict_tableau['Price (incl. tax)'][1:])
@@ -143,10 +135,10 @@ def scrap_url(url_to_scrap):
 start = time.time()
 url= 'https://books.toscrape.com/catalogue/the-requiem-red_995/index.html'
        
-write_csv_file(scrap_url(url), "books.csv", ";", True)
+write_csv_file(scrap_url(url), "books.csv", True)
 url= 'https://books.toscrape.com/catalogue/rip-it-up-and-start-again_986/index.html'
-write_csv_file(scrap_url(url), "books.csv", ";", False)
+write_csv_file(scrap_url(url), "books.csv", False)
 url= 'https://books.toscrape.com/catalogue/sapiens-a-brief-history-of-humankind_996/index.html'
-write_csv_file(scrap_url(url), "books.csv", ";", False)
+write_csv_file(scrap_url(url), "books.csv", False)
 end = time.time()
 print(f'Le temps d"execution a été de {end-start} sec.')
