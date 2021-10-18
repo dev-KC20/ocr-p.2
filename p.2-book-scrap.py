@@ -7,8 +7,8 @@ from bs4 import BeautifulSoup as bs
 import time
 import sys
 import warnings
+import re
 
-print(sys.version_info[1])
 if sys.version_info[0] < 3:
     warnings.warn("Should be using Python 3")
 if sys.version_info[1] < 10:
@@ -22,28 +22,26 @@ BE_NICE = 0
 
 
 def convert_line_table(table_soup_tag):
-    """ recoit un élément Tag de soup issu d'un tableau pour retourner la liste [clé, valeur]
+    """ recoit un élément Tag de soup issu d'un tableau pour retourner un dict {clé, valeur} du livre
         'tr' identifie les lignes
         'td' identifie les clés et 'th' les valeurs
     
     """ 
-    liste_key_value = []
     if type(table_soup_tag) is None:
         return ['wrong input type']
         # Best Practise :BP: éviter les boucles for imbriquées 
-        # par exemple en cherchant directement au niveau "td"/"th"
+    dict_info_livre = {}
     for tp in table_soup_tag.findAll("tr"): 
-    	nouvelle_line = [] 
-    	for cell in tp.findAll(["td", "th"]): 
-    		nouvelle_line.append(cell.get_text().strip()) 
-    	liste_key_value.append(nouvelle_line) 
-    return liste_key_value
+        inter = tp.find_all(["td", "th"])
+        dict_info_livre[inter[0].text] = inter[1].text
+
+    return dict_info_livre
 
 
-def write_csv_file(liste_to_write, file_name, sep, write_header):
-    """ recoit une liste_to_write et en écrit le contenu dans un fichier csv file_name 
+def write_csv_file(dict_to_write, file_name, sep, write_header):
+    """ recoit un dict_to_write et en écrit le contenu dans un fichier csv file_name 
 
-            liste_to_write est une liste de liste
+            dict_to_write est un dict colonne:valeur
             sep précise le séparateur du fichier csv
             write_header permet l'écriture d'une ligne d'entête de colonne
     """
@@ -51,43 +49,49 @@ def write_csv_file(liste_to_write, file_name, sep, write_header):
     if sep is None:
         sep = ";"
            
-    data_line = [(li[2]).strip('\n') for li in liste_to_write]
-    data_to_write = (sep.join(data_line)) 
-#    print(f'data to write  {data_to_write}')
+    data_line = [li for li in dict_to_write.values()]
+    print(f'data line  {data_line}')
     # écrire dans le fichier en ajoutant 'append'
     # si le fichier existe déja l'ouvrir avec a sinon avec w
     # :CM: inclure dans un try/execpt pour gérer les cas d'erreur fichier
     with open(file_name, "a", encoding='utf-8') as file:
     # création de l'entête
         if write_header:
-            col_header = [(li[1]).strip('\n') for li in liste_to_write]
-            header_to_write = sep.join(col_header)  
-            file.write(header_to_write) 
+            col_header = [li for li in dict_to_write.keys()]
+            file.write(sep.join(col_header)) 
             file.write('\n') 
-        file.write(data_to_write) 
+        file.write(sep.join(data_line)) 
         file.write('\n') 
     return
 
 
 def scrap_url(url_to_scrap):
-    """ recoit une url du site books.toscrap et retourne une liste des données trouvées pour le livre 
+    """ recoit une url du site books.toscrap et retourne un dict des données trouvées pour le livre 
     
-    liste des champs récupérés : id, col, valeur
+    liste des champs récupérés : col, valeur
     
     """
     # :BP: liste versus dict : ici seules les clés sont immuables, pas les valeurs -> un dict serait une option plus performante
-    list_of_info=[
-            ['url',"product_page_url",''],
-            ['UPC',"universal_product_code [upc]",''],
-            ["title","title",''],
-            ["Price (incl. tax)","price_including_tax",''],
-            ["Price (excl. tax)","price_excluding_tax",''],
-            ["Availability In stock","number_available",''],
-            ["product_description","product_description",''],
-            ["category","category",''],
-            ["review_rating","review_rating",''], 
-            ["image_url","image_url",'']
-            ]
+    dict_of_info = {
+            "product_page_url":'',
+            "universal_product_code [upc]":'',
+            "title":'',
+            "price_including_tax":'',
+            "price_excluding_tax":'',
+            "number_available":0,
+            "product_description":'',
+            "category":'',
+            "review_rating":0,
+            "image_url":''
+    }
+    # conversion alpha anglais en entier alpha
+    dict_of_rating = {
+        "One":'1', 
+        "Two":'2', 
+        "Three":'3', 
+        "Four":'4', 
+        "Five":'5', 
+        }
 # accéder et charger la page
     response = requests.get(url_to_scrap)
     # délai pour ne pas surcharger le site
@@ -97,85 +101,92 @@ def scrap_url(url_to_scrap):
     
         soup = bs(response.text,features="html.parser")
 
+        dict_of_info['product_page_url'] = url
 
         title = soup.find(class_="col-sm-6 product_main").h1
+        dict_of_info['title'] = title.text
+
         product_description = soup.find(id="content_inner").find_next('h2').find_next('p')
+        dict_of_info['product_description'] = product_description.text
+
         # :CM: evt. transformer valeur alpha "Five" en numérique "5"
         star_rating = soup.find(class_="col-sm-6 product_main").find_next('p').find_next('p').find_next('p').attrs
+        # print(f' star rating: {list(star_rating.values())[0][1]}')
+        dict_of_info['review_rating'] = dict_of_rating[list(star_rating.values())[0][1]]
+        
         category_crumb = soup.find(class_="breadcrumb").find_all('li')
         category_book = []
         for cc in category_crumb[1:]:
             if cc.text != title.text:
                 category_book.append(cc.text.strip())
         category = category_book[1:2][0]
+        dict_of_info['category'] = category
+        
         table_prod =  soup.find(class_="table table-striped")
-    
-        tableau_page = convert_line_table(table_prod)
-        # liste de liste déclarée vide, = [] liste simple?
-        table_info = [[]]
-    
+
+        dict_tableau = convert_line_table(table_prod)
+        dict_of_info['universal_product_code [upc]'] = dict_tableau['UPC']
         # :CM: evt. nettoyer les valeurs de Price, Availabilty pour n'avoir que leurs valeurs numériques 
-        for info in tableau_page:
-            # :CM: faut-il récupérer des valeurs inutilisées, chaque site scrapé diffère -> si on sait ici que c'est la 4eme valeur -> prendre l'indice 3
-            if info[0] in ['UPC', 'Price (excl. tax)', 'Price (incl. tax)', 'Availability']:
-                
-                table_info.append([info[0],info[1]])
+        # on admet que la devise n'est pas utile dans un champ numérique car aucun champ pour la stocker sauf à choisir type alphanumérique
+        dict_of_info['price_excluding_tax'] = re.sub("[a-zA-Z£()\s]+", "",dict_tableau['Price (excl. tax)'][1:])
+        dict_of_info['price_including_tax'] = re.sub("[a-zA-Z£()\s]+", "", dict_tableau['Price (incl. tax)'][1:])
+        dict_of_info['number_available'] = re.sub("[a-zA-Z()\s]+", "", dict_tableau['Availability'])
         img_file = soup.find(class_="item active").find('img')
         site_parts = url_to_scrap.split('/')
         img_parts = img_file["src"].split('/')
-    
         img_sub_url = "/".join(img_parts[2:])
-    
         img_url = "https://" + site_parts[2:3][0] + "/" +(img_sub_url)
-    
-        for line in list_of_info:
+
+        print(dict_of_info)
+        # for line in dict_of_info:
+        #     print(line)
     # pour tester la nouvelle version 3.10 de python (à vérifier lors de l'execution si update python fait en local!)
-            if sys.version_info[1] >= 10:
-                match line[0]:
-                    case 'url':
-                        line[2] = url_to_scrap
-                    case 'UPC':
-                        line[2] = table_info[1][1]
-                    case 'title':
-                        line[2] = title.text
-                    case 'Price (incl. tax)':
-                        line[2] = table_info[2][1]
-                    case 'Price (excl. tax)':
-                        line[2] = table_info[3][1]
-                    case 'Availability In stock':
-                        line[2] = table_info[4][1]
-                    case 'product_description':
-                        line[2] = product_description.text
-                    case 'category':
-                        line[2] = category
-                    case 'review_rating':
-                        line[2] = list(star_rating.values())[0][1]
-                    case 'image_url':
-                        line[2] = img_url
-            else:
-                if line[0] == 'url':
-                    line[2] = url_to_scrap
-                elif line[0] == 'UPC':
-                    line[2] = table_info[1][1]
-                elif line[0] == 'title':
-                    line[2] = title.text
-                elif line[0] == 'Price (incl. tax)':
-                    line[2] = table_info[2][1]
-                elif line[0] == 'Price (excl. tax)':
-                    line[2] = table_info[3][1]
-                elif line[0] == 'Availability In stock':
-                    line[2] = table_info[4][1]
-                elif line[0] == 'product_description':
-                    line[2] = product_description.text
-                elif line[0] == 'category':
-                    line[2] = category
-                elif line[0] == 'review_rating':
-                    line[2] = list(star_rating.values())[0][1]
-                elif line[0] == 'image_url':
-                    line[2] = img_url
+            # if sys.version_info[1] >= 10:
+            #     match line[0]:
+            #         case 'url':
+            #             line[2] = url_to_scrap
+            #         case 'UPC':
+            #             line[2] = table_info[1][1]
+            #         case 'title':
+            #             line[2] = title.text
+            #         case 'Price (incl. tax)':
+            #             line[2] = table_info[2][1]
+            #         case 'Price (excl. tax)':
+            #             line[2] = table_info[3][1]
+            #         case 'Availability In stock':
+            #             line[2] = table_info[4][1]
+            #         case 'product_description':
+            #             line[2] = product_description.text
+            #         case 'category':
+            #             line[2] = category
+            #         case 'review_rating':
+            #             line[2] = list(star_rating.values())[0][1]
+            #         case 'image_url':
+            #             line[2] = img_url
+            # else:
+            #     if line[0] == 'url':
+            #         line[2] = url_to_scrap
+            #     elif line[0] == 'UPC':
+            #         line[2] = table_info[1][1]
+            #     elif line[0] == 'title':
+            #         line[2] = title.text
+            #     elif line[0] == 'Price (incl. tax)':
+            #         line[2] = table_info[2][1]
+            #     elif line[0] == 'Price (excl. tax)':
+            #         line[2] = table_info[3][1]
+            #     elif line[0] == 'Availability In stock':
+            #         line[2] = table_info[4][1]
+            #     elif line[0] == 'product_description':
+            #         line[2] = product_description.text
+            #     elif line[0] == 'category':
+            #         line[2] = category
+            #     elif line[0] == 'review_rating':
+            #         line[2] = list(star_rating.values())[0][1]
+            #     elif line[0] == 'image_url':
+            #         line[2] = img_url
 
 
-    return list_of_info
+    return dict_of_info
 
 
 # pages en cours de scrap
