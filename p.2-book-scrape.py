@@ -64,7 +64,7 @@ def write_csv_file(dict_to_write, file_name, sep, write_header):
 
 
 def scrap_url(url_to_scrap):
-    """ recoit une url du site books.toscrap et retourne un dict des données trouvées pour le livre 
+    """ recoit une url du site books.toscrape et retourne un dict des données trouvées pour le livre 
     
     liste des champs récupérés : col, valeur
     
@@ -133,6 +133,7 @@ def scrap_url(url_to_scrap):
         img_parts = img_file["src"].split('/')
         img_sub_url = "/".join(img_parts[2:])
         img_url = "https://" + site_parts[2:3][0] + "/" +(img_sub_url)
+        dict_of_info['image_url'] = img_url
 
     return dict_of_info
 
