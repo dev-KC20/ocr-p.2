@@ -6,6 +6,7 @@ import requests
 from bs4 import BeautifulSoup as bs
 import time
 import re
+import csv
 
 
 
@@ -48,14 +49,17 @@ def write_csv_file(dict_to_write, file_name, sep, write_header):
     # écrire dans le fichier en ajoutant 'append'
     # si le fichier existe déja l'ouvrir avec a sinon avec w
     # :CM: inclure dans un try/execpt pour gérer les cas d'erreur fichier
-    with open(file_name, "a", encoding='utf-8') as file:
-    # création de l'entête
-        if write_header:
-            col_header = [li for li in dict_to_write.keys()]
-            file.write(sep.join(col_header)) 
-            file.write('\n') 
-        file.write(sep.join(data_line).strip())
-        file.write('\n') 
+
+    try:
+        with open(file_name, "a", newline='', encoding='utf-8') as file:
+            writer = csv.DictWriter(file, fieldnames=dict_to_write.keys(),delimiter=';',
+                            doublequote=True)
+            if write_header:
+                writer.writeheader()
+            writer.writerow(dict_to_write)
+    except IOError:
+        print(f" une erreur est survenue à l'écriture du fichier {file_name} : {IOError}")            
+    
     return
 
 
