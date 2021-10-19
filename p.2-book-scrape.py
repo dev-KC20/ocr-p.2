@@ -57,7 +57,7 @@ def write_csv_file(dict_to_write, file_name, write_header):
     return
 
 
-def scrap_url(url_to_scrape):
+def scrape_url(url_to_scrape):
     """ recoit une url du site books.toscrape et retourne un dict des données trouvées pour le livre 
     
     liste des champs récupérés : col, valeur
@@ -133,17 +133,17 @@ def scrap_url(url_to_scrape):
 
 
 def main():
-# pages en cours de scrap
+# pages en cours de scrape
     start = time.time()
 
     url= 'https://books.toscrape.com/catalogue/the-requiem-red_995/index.html'
-    write_csv_file(scrap_url(url), "books.csv", True)
+    write_csv_file(scrape_url(url), "books.csv", True)
 
     url= 'https://books.toscrape.com/catalogue/rip-it-up-and-start-again_986/index.html'
-    write_csv_file(scrap_url(url), "books.csv", False)
+    write_csv_file(scrape_url(url), "books.csv", False)
 
     url= 'https://books.toscrape.com/catalogue/sapiens-a-brief-history-of-humankind_996/index.html'
-    write_csv_file(scrap_url(url), "books.csv", False)
+    write_csv_file(scrape_url(url), "books.csv", False)
 
     end = time.time()
     print(f'Le temps d"execution a été de {end-start} sec.')
