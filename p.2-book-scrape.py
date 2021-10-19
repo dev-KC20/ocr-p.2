@@ -57,7 +57,7 @@ def write_csv_file(dict_to_write, file_name, write_header):
     return
 
 
-def scrap_url(url_to_scrap):
+def scrap_url(url_to_scrape):
     """ recoit une url du site books.toscrape et retourne un dict des données trouvées pour le livre 
     
     liste des champs récupérés : col, valeur
@@ -84,7 +84,7 @@ def scrap_url(url_to_scrap):
         "Five":'5', 
         }
 # accéder et charger la page
-    response = requests.get(url_to_scrap)
+    response = requests.get(url_to_scrape)
     
     # délai pour ne pas surcharger le site
     time.sleep(BE_NICE)
@@ -93,7 +93,7 @@ def scrap_url(url_to_scrap):
         # response.encoding = 'ISO-8859-1'
         soup = bs(response.content,features="html.parser")
 
-        dict_of_info['product_page_url'] = url
+        dict_of_info['product_page_url'] = url_to_scrape
 
         title = soup.find(class_="col-sm-6 product_main").h1
         dict_of_info['title'] = title.text
@@ -121,7 +121,7 @@ def scrap_url(url_to_scrap):
         dict_of_info['price_including_tax'] = re.sub("[a-zA-Z£()\s]+", "", dict_tableau['Price (incl. tax)'][1:])
         dict_of_info['number_available'] = re.sub("[a-zA-Z()\s]+", "", dict_tableau['Availability'])
         img_file = soup.find(class_="item active").find('img')
-        site_parts = url_to_scrap.split('/')
+        site_parts = url_to_scrape.split('/')
         img_parts = img_file["src"].split('/')
         img_sub_url = "/".join(img_parts[2:])
         img_url = "https://" + site_parts[2:3][0] + "/" +(img_sub_url)
@@ -130,15 +130,28 @@ def scrap_url(url_to_scrap):
     return dict_of_info
 
 
-# pages en cours de scrap
 
-start = time.time()
-url= 'https://books.toscrape.com/catalogue/the-requiem-red_995/index.html'
-       
-write_csv_file(scrap_url(url), "books.csv", True)
-url= 'https://books.toscrape.com/catalogue/rip-it-up-and-start-again_986/index.html'
-write_csv_file(scrap_url(url), "books.csv", False)
-url= 'https://books.toscrape.com/catalogue/sapiens-a-brief-history-of-humankind_996/index.html'
-write_csv_file(scrap_url(url), "books.csv", False)
-end = time.time()
-print(f'Le temps d"execution a été de {end-start} sec.')
+
+def main():
+# pages en cours de scrap
+    start = time.time()
+
+    url= 'https://books.toscrape.com/catalogue/the-requiem-red_995/index.html'
+    write_csv_file(scrap_url(url), "books.csv", True)
+
+    url= 'https://books.toscrape.com/catalogue/rip-it-up-and-start-again_986/index.html'
+    write_csv_file(scrap_url(url), "books.csv", False)
+
+    url= 'https://books.toscrape.com/catalogue/sapiens-a-brief-history-of-humankind_996/index.html'
+    write_csv_file(scrap_url(url), "books.csv", False)
+
+    end = time.time()
+    print(f'Le temps d"execution a été de {end-start} sec.')
+
+    return
+
+
+if __name__ == "__main__":
+    main()
+
+
