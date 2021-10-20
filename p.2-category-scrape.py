@@ -102,7 +102,7 @@ def scrape_url(url_to_scrape):
         dict_of_info['title'] = title.text
 
         product_description = soup.find(id="content_inner").find_next('h2').find_next('p')
-        dict_of_info['product_description'] = product_description.text 
+        dict_of_info['product_description'] = product_description.text
         # :CM: evt. transformer valeur alpha "Five" en numérique "5"
         star_rating = soup.find(class_="col-sm-6 product_main").find_next('p').find_next('p').find_next('p').attrs
         dict_of_info['review_rating'] = dict_of_rating[list(star_rating.values())[0][1]]
@@ -132,6 +132,49 @@ def scrape_url(url_to_scrape):
 
     return dict_of_info
 
+def scrape_category_page(url_page):
+    """ recoit l'url d'une catégorie de livre et retourne la liste des urls de livre associés et event. l'url page suivante
+    
+    Keywords:
+    url_page: l'url d'une page de livre à scraper
+    list_url_of_book : liste d'url de livre correspondant à la category_to_search
+    next_page_url: retourne l'url de la page suivante, vide si dernière page
+    
+    """
+    list_url_of_book = []
+    next_page_url = ''
+    base_url_page = ''
+    # constitution de l'url de base de la category par ex. "https://books.toscrape.com/catalogue/category/books/fantasy_19/"
+    if url_page != '':
+        # manually parsing url
+        url_parts = url_page.split('/')
+        base_url_page = "https://" + "/".join(url_parts[2:7]) + "/"
+
+        # accéder et charger la page
+        response = requests.get(url_page)
+
+        # délai pour ne pas surcharger le site
+        time.sleep(BE_NICE)
+        # traiter si le site a bien retourné la page
+        if response.ok:
+            soup = bs(response.content,features="html.parser")
+#           collecte des urls des livres de la page
+            list_book_page1 = soup.find_all(class_="image_container")
+            for book in list_book_page1:
+                list_url_of_book.append(BASE_URL + 'catalogue/' + book.find(href=True)['href'].replace('../',''))
+
+            # y a t-il une autre/next page dans la soup actuelle ?
+            next_page = soup.find_all(class_="next")
+#           collecte de l'url de la page de category suivante si elle existe
+            if next_page is not None and len(next_page) != 0:
+                next_page_short_url = next_page[0].find(href=True)["href"]
+                next_page_url = base_url_page + next_page_short_url
+            # else:            
+                # next_page_url = ''
+        
+    return list_url_of_book, next_page_url
+
+
 def scrape_category(category_to_search):
     """ recoit le nom d'une catégorie de livre et retourne la liste des urls de livre associés
     
@@ -140,33 +183,31 @@ def scrape_category(category_to_search):
     list_url_of_book : liste d'url de livre correspondant à la category_to_search
     
     """
-# v1 : commencons par scraper une page de livre 
+# v1 : commencons par scraper une page de livre à partir de l'url de la category
     category_url_page1 = 'https://books.toscrape.com/catalogue/category/books/fantasy_19/index.html'
+    # category_url_page1 = 'https://books.toscrape.com/catalogue/category/books/travel_2/index.html'
     list_url_of_book = []
-    # accéder et charger la page
-    response = requests.get(category_url_page1)
-    
-    # délai pour ne pas surcharger le site
-    time.sleep(BE_NICE)
-    # traiter si le site a bien retourné la page
-    if response.ok:
-        # response.encoding = 'ISO-8859-1'
-        soup = bs(response.content,features="html.parser")
+    go_find = scrape_category_page(category_url_page1)
+    if go_find[0] != '':
+        list_url_of_book.extend(go_find[0])
+        if go_find[1] != '':
+            while go_find[1] != '':
+                # cherche les livres de l'url next
+                go_find = scrape_category_page(go_find[1])
+                if go_find[0] != '':
+                       list_url_of_book.extend(go_find[0])
 
-        list_book_page1 = soup.find_all(class_="image_container")
-        for el in list_book_page1:
-            # print(el.find('src'))
-            list_url_of_book.append(BASE_URL + 'catalogue/' + el.find(href=True)['href'].replace('../',''))
-        # print(list_url_of_book)
-
+    print(f' # books in {category_to_search} category: {len(list_url_of_book)} ')
     return list_url_of_book
 
 def main():
-# pages en cours de scrape
+    # temps d'execution = end-start
     start = time.time()
-    # scrape_category('Fantasy')
+    # pour chaque livre trouvé dans la category, ecrire dans le fichier csv
     for book in scrape_category('Fantasy'):
         write_csv_file(scrape_url(book), CSV_FILE, False)
+    #     i = i + 1
+    #     print(f' bcl: {i}','\n')
 
     end = time.time()
     print(f'Le temps d"execution a été de {end-start} sec.')
