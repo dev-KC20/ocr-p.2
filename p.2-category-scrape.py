@@ -16,6 +16,8 @@ BE_NICE = 0
 # url de home page du site dont les categories sont à scraper
 BASE_URL = 'https://books.toscrape.com/'
 
+CSV_FILE = 'catbooks.csv'
+
 
 
 def convert_line_table(table_soup_tag):
@@ -164,7 +166,7 @@ def main():
     start = time.time()
     # scrape_category('Fantasy')
     for book in scrape_category('Fantasy'):
-        write_csv_file(scrape_url(book), "books.csv", False)
+        write_csv_file(scrape_url(book), CSV_FILE, False)
 
     end = time.time()
     print(f'Le temps d"execution a été de {end-start} sec.')
