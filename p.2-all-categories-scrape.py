@@ -321,6 +321,7 @@ def main():
 if __name__ == "__main__":
     main()
 
+# :TODO fix: la manipulation des url et des paths, un peu laborieuse
 # :DONE télécharge et enregistre le fichier image de chaque page Produit que vous consultez
 # :DONE extraire toutes les catégories de livres disponibles, puis extraire les informations produit de tous les livres appartenant à toutes les différentes catégories
 # :DONE écrire les données dans un fichier CSV distinct pour chaque catégorie de livres.
@@ -330,5 +331,6 @@ if __name__ == "__main__":
 # V0: Le temps d"execution a été de 638.9061455726624 sec.
 # V1: Le temps d"execution a été de 627.5623686313629 sec.
 # V1: et 1000 livre(s) ont été scrapés.
+# V2: Le temps d"execution a été de 1397.464834690094 sec.
+# V2: et 1000 livre(s) ont été scrapés.
 
-# :TODO fix: la manipulation des url et des paths, un peu laborieuse
