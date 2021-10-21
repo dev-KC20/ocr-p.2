@@ -9,16 +9,30 @@ import re
 import csv
 
 
+# def initialisation():
 
 # :CM: baisser le délai d'attente car le site est dédié aux étudiants
 BE_NICE = 0
-
 # url de home page du site dont les categories sont à scraper
 BASE_URL = 'https://books.toscrape.com/'
-
 CSV_FILE = 'catbooks.csv'
-
-
+# construire le dictionnaire des urls de category
+# accéder et charger la page
+response = requests.get(BASE_URL)
+# délai pour ne pas surcharger le site
+time.sleep(BE_NICE)
+# traiter si le site a bien retourné la page
+if response.ok:
+    soup = bs(response.content,features="html.parser")
+    DICT_CAT_URL = {}
+    # se positionner dans le sous menu de navigation de la home page
+    list_category = soup.find_all(class_="nav nav-list")
+    # collecte des urls des catégory de la home page
+    for line in list_category[0].li.ul.find_all(href=True):
+    #for sub_line in line:
+        # print(f' category: {(line.string.strip())} @ {line.get("href")} ')
+        DICT_CAT_URL[line.string.strip()] = BASE_URL + line.get("href")
+    # return
 
 def convert_line_table(table_soup_tag):
     """ recoit un élément Tag de soup issu d'un tableau pour retourner un dict {clé, valeur} du livre
@@ -175,39 +189,53 @@ def scrape_category_page(url_page):
     return list_url_of_book, next_page_url
 
 
-def scrape_category(category_to_search):
-    """ recoit le nom d'une catégorie de livre et retourne la liste des urls de livre associés
+def scrape_category(category_url_index):
+    """ recoit l'url d'une catégorie de livre et retourne la liste des urls de livre associés
     
     Keywords:
-    category_to_search nom de la catégorie cherchée
+    category_url_index : url de l'index de la catégorie cherchée
     list_url_of_book : liste d'url de livre correspondant à la category_to_search
     
     """
-# v1 : commencons par scraper une page de livre à partir de l'url de la category
-    category_url_page1 = 'https://books.toscrape.com/catalogue/category/books/fantasy_19/index.html'
-    # category_url_page1 = 'https://books.toscrape.com/catalogue/category/books/travel_2/index.html'
     list_url_of_book = []
-    go_find = scrape_category_page(category_url_page1)
-    if go_find[0] != '':
-        list_url_of_book.extend(go_find[0])
-        if go_find[1] != '':
-            while go_find[1] != '':
-                # cherche les livres de l'url next
-                go_find = scrape_category_page(go_find[1])
-                if go_find[0] != '':
-                       list_url_of_book.extend(go_find[0])
+    if category_url_index != '':
+        go_find = scrape_category_page(category_url_index)
+        if go_find[0] != '':
+            list_url_of_book.extend(go_find[0])
+            if go_find[1] != '':
+                while go_find[1] != '':
+                    # cherche les livres de l'url next
+                    go_find = scrape_category_page(go_find[1])
+                    if go_find[0] != '':
+                           list_url_of_book.extend(go_find[0])
 
-    print(f' # books in {category_to_search} category: {len(list_url_of_book)} ')
+        # print(f' # books in {category_to_search} category: {len(list_url_of_book)} ')
     return list_url_of_book
 
+def get_category_url(category_to_search):
+    """ recoit le nom d'une category et retourne l'url de cette catégorie de livre 
+    
+    Keywords:
+    category_to_search: nom de la catégorie cherchée
+    category_url_index : url de l'index de la catégorie cherchée
+    
+    """
+  
+    category_url_index = ''
+    if category_to_search != '':
+        category_url_index = DICT_CAT_URL[category_to_search]
+
+        
+    return category_url_index
+
 def main():
+
+    # initialisation()
     # temps d'execution = end-start
     start = time.time()
     # pour chaque livre trouvé dans la category, ecrire dans le fichier csv
-    for book in scrape_category('Fantasy'):
+    for book in scrape_category(get_category_url('Fantasy')):
         write_csv_file(scrape_url(book), CSV_FILE, False)
-    #     i = i + 1
-    #     print(f' bcl: {i}','\n')
 
     end = time.time()
     print(f'Le temps d"execution a été de {end-start} sec.')
