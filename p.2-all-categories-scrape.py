@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup as bs
 import time
 import re
 import csv
+import shutil
 
 """
 collecte les informations des livres du site BASE_URL et les stocke dans un fichier csv  par catégorie
@@ -45,8 +46,6 @@ if response.ok:
     list_category = soup.find_all(class_="nav nav-list")
     # collecte des urls des catégory de la home page
     for line in list_category[0].li.ul.find_all(href=True):
-    #for sub_line in line:
-        # print(f' category: {(line.string.strip())} @ {line.get("href")} ')
         DICT_CAT_URL[line.string.strip()] = BASE_URL + line.get("href")
     # return
 #
@@ -89,7 +88,6 @@ def write_csv_file(dict_to_write, file_name):
 
     # file_names is category name + '.csv'
     if file_name[:len(file_name)-4] != current_category:
-        print(file_name[:len(file_name)-4] )
         current_category = file_name[:len(file_name)-4]
         column_written = False
 
@@ -182,6 +180,8 @@ def scrape_url(url_to_scrape):
         img_sub_url = "/".join(img_parts[2:])
         img_url = "https://" + site_parts[2:3][0] + "/" +(img_sub_url)
         dict_of_info['image_url'] = img_url
+        # télécharge et enregistre le fichier image 
+        get_save_image(img_url)
 
     return dict_of_info
 
@@ -248,7 +248,6 @@ def scrape_category(category_url_index):
                     if go_find[0] != '':
                            list_url_of_book.extend(go_find[0])
 
-        # print(f' # books in {category_to_search} category: {len(list_url_of_book)} ')
     return list_url_of_book
 
 def get_category_url(category_to_search):
@@ -266,6 +265,34 @@ def get_category_url(category_to_search):
 
         
     return category_url_index
+
+
+def get_save_image(image_url):
+    """ télécharge et enregistre le fichier image d'une page Produit
+
+    L'image est stockée dans un fichier ayant le nom de l'url
+
+    Keywords:
+    image_url : url de l'image à sauvegarder
+    
+    """
+    # https://books.toscrape.com/media/cache/6d/41/6d418a73cc7d4ecfd75ca11d854041db.jpg
+
+    if image_url != '':
+        image_url_parts = image_url.split('/')
+        # len = nombre de parts de l'url de l'image et nous voulons le dernier part
+        image_name = image_url_parts[len(image_url_parts)-1:len(image_url_parts)][0]
+        response = requests.get(image_url, stream=True)
+        if response.ok: 
+            try:
+                with open(image_name, 'wb') as file: 
+                    response.raw.decode_content = True
+                    shutil.copyfileobj(response.raw, file)
+            except IOError:
+                print(f" une erreur est survenue à l'écriture du fichier {image_name} : {IOError}")            
+    
+
+    return 
 
 #
 # Fin Section Fonctions internes
@@ -294,6 +321,7 @@ def main():
 if __name__ == "__main__":
     main()
 
+# :DONE télécharge et enregistre le fichier image de chaque page Produit que vous consultez
 # :DONE extraire toutes les catégories de livres disponibles, puis extraire les informations produit de tous les livres appartenant à toutes les différentes catégories
 # :DONE écrire les données dans un fichier CSV distinct pour chaque catégorie de livres.
 # :DONE Compteur des livres collectés 
@@ -303,3 +331,4 @@ if __name__ == "__main__":
 # V1: Le temps d"execution a été de 627.5623686313629 sec.
 # V1: et 1000 livre(s) ont été scrapés.
 
+# :TODO fix: la manipulation des url et des paths, un peu laborieuse
