@@ -5,6 +5,7 @@
 *.log
 *.cfg
 *.data
+data/
 
 # local settings
 .vscode/
