@@ -16,6 +16,10 @@ BE_NICE = 0
 # url de home page du site dont les categories sont à scraper
 BASE_URL = 'https://books.toscrape.com/'
 CSV_FILE = 'catbooks.csv'
+# écrire l'entête une seule fois
+column_written = False
+
+
 # construire le dictionnaire des urls de category
 # accéder et charger la page
 response = requests.get(BASE_URL)
@@ -34,6 +38,9 @@ if response.ok:
         DICT_CAT_URL[line.string.strip()] = BASE_URL + line.get("href")
     # return
 
+
+
+
 def convert_line_table(table_soup_tag):
     """ recoit un élément Tag de soup issu d'un tableau pour retourner un dict {clé, valeur} du livre
         'tr' identifie les lignes
@@ -51,7 +58,7 @@ def convert_line_table(table_soup_tag):
     return dict_info_livre
 
 
-def write_csv_file(dict_to_write, file_name, write_header):
+def write_csv_file(dict_to_write, file_name):
     """ recoit un dict_to_write et en écrit le contenu dans un fichier csv file_name 
 
             dict_to_write est un dict colonne:valeur
@@ -60,13 +67,14 @@ def write_csv_file(dict_to_write, file_name, write_header):
     """
            
     data_line = [li for li in dict_to_write.values()]
-
+    global column_written
     try:
         with open(file_name, "a", newline='', encoding='utf-8') as file:
             writer = csv.DictWriter(file, fieldnames=dict_to_write.keys(),delimiter=';',
                             doublequote=True)
-            if write_header:
+            if not column_written:
                 writer.writeheader()
+                column_written = True
             writer.writerow(dict_to_write)
     except IOError:
         print(f" une erreur est survenue à l'écriture du fichier {file_name} : {IOError}")            
@@ -235,7 +243,7 @@ def main():
     start = time.time()
     # pour chaque livre trouvé dans la category, ecrire dans le fichier csv
     for book in scrape_category(get_category_url('Fantasy')):
-        write_csv_file(scrape_url(book), CSV_FILE, False)
+        write_csv_file(scrape_url(book), CSV_FILE)
 
     end = time.time()
     print(f'Le temps d"execution a été de {end-start} sec.')
@@ -246,4 +254,4 @@ def main():
 if __name__ == "__main__":
     main()
 
-
+# DONE: écrire dans csv entête de colonne s'il n'existe pas déja
