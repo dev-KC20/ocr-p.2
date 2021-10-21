@@ -327,7 +327,7 @@ if __name__ == "__main__":
 # :DONE écrire les données dans un fichier CSV distinct pour chaque catégorie de livres.
 # :DONE Compteur des livres collectés 
 
-# (env) (anaconda3)C:\Local\dev\python\ocr\ocr-cours\p.2>python p.2-all-categories-scrape.py
+# (env) (anaconda3)C:\Local\dev\python\ocr\ocr-cours\p.2>python p2-03-all-categories-scrape.py
 # V0: Le temps d"execution a été de 638.9061455726624 sec.
 # V1: Le temps d"execution a été de 627.5623686313629 sec.
 # V1: et 1000 livre(s) ont été scrapés.
