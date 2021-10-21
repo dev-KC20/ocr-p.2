@@ -15,7 +15,9 @@ collecte les informations des livres du site BASE_URL et les stocke dans un fich
 
 """
 
-
+#
+# section initialisation 
+#
 # def initialisation():
 
 # :CM: baisser le délai d'attente car le site est dédié aux étudiants
@@ -27,6 +29,8 @@ CSV_FILE = 'catbooks.csv'
 column_written = False
 # se souvenir de la category courante
 current_category = ''
+# compteur de livre scrapé
+number_of_book = 0
 
 # construire le dictionnaire des urls de category
 # accéder et charger la page
@@ -45,9 +49,14 @@ if response.ok:
         # print(f' category: {(line.string.strip())} @ {line.get("href")} ')
         DICT_CAT_URL[line.string.strip()] = BASE_URL + line.get("href")
     # return
+#
+# Fin section initialisation 
+#
 
 
-
+#
+# Section Fonctions internes
+#
 
 def convert_line_table(table_soup_tag):
     """ recoit un élément Tag de soup issu d'un tableau pour retourner un dict {clé, valeur} du livre
@@ -125,6 +134,9 @@ def scrape_url(url_to_scrape):
         "Four":'4', 
         "Five":'5', 
         }
+    # +1 par execution de la fonction
+    global number_of_book
+
 # accéder et charger la page
     response = requests.get(url_to_scrape)
     
@@ -134,6 +146,8 @@ def scrape_url(url_to_scrape):
     if response.ok:
         # response.encoding = 'ISO-8859-1'
         soup = bs(response.content,features="html.parser")
+
+        number_of_book = number_of_book + 1
 
         dict_of_info['product_page_url'] = url_to_scrape
 
@@ -253,6 +267,11 @@ def get_category_url(category_to_search):
         
     return category_url_index
 
+#
+# Fin Section Fonctions internes
+#
+
+
 def main():
 
     # initialisation()
@@ -267,6 +286,7 @@ def main():
 
     end = time.time()
     print(f'Le temps d"execution a été de {end-start} sec.')
+    print(f'et {number_of_book} livre(s) ont été scrapés.')
 
     return
 
@@ -276,6 +296,10 @@ if __name__ == "__main__":
 
 # :DONE extraire toutes les catégories de livres disponibles, puis extraire les informations produit de tous les livres appartenant à toutes les différentes catégories
 # :DONE écrire les données dans un fichier CSV distinct pour chaque catégorie de livres.
+# :DONE Compteur des livres collectés 
 
 # (env) (anaconda3)C:\Local\dev\python\ocr\ocr-cours\p.2>python p.2-all-categories-scrape.py
-# Le temps d"execution a été de 638.9061455726624 sec.
+# V0: Le temps d"execution a été de 638.9061455726624 sec.
+# V1: Le temps d"execution a été de 627.5623686313629 sec.
+# V1: et 1000 livre(s) ont été scrapés.
+
