@@ -49,13 +49,15 @@ Pour utiliser le script p2-03-all-categories-scrape.py,
 il est conseillé sous le prompt bash python (ici cmd Anaconda3 sous Windows 11):  
 1. de cloner l'ensemble du répertoire github dans un répertoire local dédié.  
         ``` git clone https://github.com/dev-KC20/ocr-p.2.git  
-2. de créer un environnement virtuel python, env  
+2. se déplacer dans le sous répertoire de travail ocr-p.2
+        ``` cd ocr-p.2
+3. de créer un environnement virtuel python, env  
         ``` python -m venv env  
-3. d'activer un environnement virtuel python, env  
+4. d'activer un environnement virtuel python, env  
         ``` env\scripts\activate.bat  
-4. d'installer les paquets requis pour mémoire,   
+5. d'installer les paquets requis pour mémoire,   
         ``` pip install -r requirements.txt  
-5. d'executer le script  
+6. d'executer le script  
         ``` python p2-03-all-categories-scrape.py    
   
 Les fichiers des images de couverture et les fichiers csv sont déposés au niveau du répertoire d'execution    
