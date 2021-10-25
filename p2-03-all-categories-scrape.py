@@ -8,6 +8,7 @@ import time
 import re
 import csv
 import shutil
+from concurrent.futures import ThreadPoolExecutor
 
 """
 collecte les informations des livres du site BASE_URL et les stocke dans un fichier csv  par catégorie
@@ -308,8 +309,14 @@ def main():
         # pour chaque livre trouvé dans la category, ecrire dans le fichier csv
     for cat in DICT_CAT_URL.keys():
 
-        for book in scrape_category(get_category_url(cat)):
-            write_csv_file(scrape_url(book), cat + '.csv')
+#       for book in scrape_category(get_category_url(cat)):
+#           write_csv_file(scrape_url(book), cat + '.csv')
+# TODO: :CM: a titre d'exo mettre cette boucle for dans un process concurrent pour 
+#       comparer les temps d'execution import concurrent.futures
+
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            tables = executor.map(write_csv_file(scrape_url(), cat + '.csv'), scrape_category(get_category_url(cat)))
+
 
     end = time.time()
     print(f'Le temps d"execution a été de {end-start} sec.')
@@ -323,7 +330,8 @@ if __name__ == "__main__":
 
 # :TODO fix: la manipulation des url et des paths, un peu laborieuse
 # :DONE télécharge et enregistre le fichier image de chaque page Produit que vous consultez
-# :DONE extraire toutes les catégories de livres disponibles, puis extraire les informations produit de tous les livres appartenant à toutes les différentes catégories
+# :DONE extraire toutes les catégories de livres disponibles, puis extraire les informations produit 
+#       de tous les livres appartenant à toutes les différentes catégories
 # :DONE écrire les données dans un fichier CSV distinct pour chaque catégorie de livres.
 # :DONE Compteur des livres collectés 
 
@@ -333,4 +341,8 @@ if __name__ == "__main__":
 # V1: et 1000 livre(s) ont été scrapés.
 # V2: Le temps d"execution a été de 1397.464834690094 sec.
 # V2: et 1000 livre(s) ont été scrapés.
-
+# V3: Avant amélioration de perf : Le temps d"execution a été de 1446.8017835617065 sec.
+# V3: et 1000 livre(s) ont été scrapés.
+# V4: Après utilisation du module concurrent.futures
+# V4: Le temps d"execution a été de 1397.532243013382 sec.
+# V4: et 1000 livre(s) ont été scrapés.
