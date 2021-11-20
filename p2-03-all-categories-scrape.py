@@ -8,8 +8,8 @@ import time
 import re
 import csv
 import shutil
+import concurrent.futures 
 # from concurrent.futures import ThreadPoolExecutor
-
 """
 collecte les informations des livres du site BASE_URL et les stocke dans un fichier csv  par catégorie
 
@@ -299,6 +299,14 @@ def get_save_image(image_url):
 # Fin Section Fonctions internes
 #
 
+def traite_cat(cat:dict):
+    """ prend un élément du dictionnaire des catégorie et en écrit les livres dans CSV
+
+    
+    """
+    # print(cat[0])
+    for livre in  scrape_category(cat[1]):
+        write_csv_file(scrape_url(livre), cat[0] + '.csv')
 
 def main():
 
@@ -307,15 +315,12 @@ def main():
     start = time.time()
     # pour chaque category trouvé dans le site,
         # pour chaque livre trouvé dans la category, ecrire dans le fichier csv
-    for cat in DICT_CAT_URL.keys():
-
-      for book in scrape_category(get_category_url(cat)):
-          write_csv_file(scrape_url(book), cat + '.csv')
 # TODO: :CM: a titre d'exo mettre cette boucle for dans un process concurrent pour 
 #       comparer les temps d'execution import concurrent.futures
 
-        # with concurrent.futures.ThreadPoolExecutor() as executor:
-        #     tables = executor.map(write_csv_file(scrape_url(), cat + '.csv'), scrape_category(get_category_url(cat)))
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        executor.map(traite_cat, DICT_CAT_URL.items())
+
 
 
     end = time.time()
