@@ -17,8 +17,12 @@ The additionnal code follows "CC BY-SA ".
 ---
 ## Objet.  
   
-Le script p2-03-all-categories-scrape.py permet de scraper l'ensemble des livres du site https://books.toscrape.com.  
+Nouvelle version orientée objet du script python qui permet de scraper l'ensemble des livres du site https://books.toscrape.com.  
 
+
+Les fonctionnalités resteront, à priori, identiques.
+
+*** old still valid version of the readme doc. : ***
 Il enregistre les informations des livres dans un fichier csv dont le nom correspondant à la catégorie à laquelle appartient le livre.  
 Ainsi le livre "Unicorn Tracks" qui fait parti de la catégorie "Fantasy" aura ses informations stockées dans le fichier Fantasy.csv.  
 Par ailleurs, l'image de la couverture du livre sera stockée dans un fichier image au format jpg dont le nom correspond à celui présent dans la colonne 'image_url' du fichier csv.  
