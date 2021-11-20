@@ -15,6 +15,17 @@ The additionnal code follows "CC BY-SA ".
 
 
 ---
+
+
+Nouvelle version orientée objet du script python qui permet de scraper l'ensemble des livres du site https://books.toscrape.com.  
+
+
+Les fonctionnalités resteront, à priori, identiques.
+
+*** old still valid version of the readme doc. : ***
+
+
+
 ## Objet.  
   
 Le script p2-03-all-categories-scrape.py permet de scraper l'ensemble des livres du site https://books.toscrape.com.  
